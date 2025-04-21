@@ -1,35 +1,20 @@
+# main.py
 from fastapi import FastAPI, Request
-from starlette.responses import Response
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy import create_engine, select
-from database.models import EmailLeads
-import base64
-
-# Замените на вашу строку подключения к БД на Render
-DATABASE_URL = "postgresql://mybot:qe9UR3fd6ZrSDkXaqlb9Bkv9HC1J4HUt@dpg-d00gv9k9c44c73flrq2g-a.virginia-postgres.render.com/megabot_jqre"
-
-engine = create_engine(DATABASE_URL)
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+from fastapi.responses import HTMLResponse
+from datetime import datetime
 
 app = FastAPI()
 
-# Прозрачный 1x1 GIF пиксель
-TRANSPARENT_GIF_BASE64 = (
-    b"R0lGODlhAQABAPAAAP///wAAACwAAAAAAQABAAACAkQBADs="
-)
-TRANSPARENT_GIF_BYTES = base64.b64decode(TRANSPARENT_GIF_BASE64)
-
-@app.get("/track_open")
-async def track_open(id: int, request: Request):
-    session = SessionLocal()
-    lead = session.execute(
-        select(EmailLeads).where(EmailLeads.id == id)
-    ).scalar_one_or_none()
-
-    if lead:
-        lead.read_tracking = True
-        session.commit()
-
-    session.close()
-
-    return Response(content=TRANSPARENT_GIF_BYTES, media_type="image/gif")
+@app.get("/track_open", response_class=HTMLResponse)
+async def track_open(id: str = "", request: Request = None):
+    user_agent = request.headers.get("User-Agent", "Unknown")
+    with open("opens.log", "a") as f:
+        f.write(f"{datetime.utcnow()} | lead_id={id} | User-Agent={user_agent}\n")
+    
+    # Прозрачный 1x1 GIF пиксель
+    transparent_gif = (
+        b"GIF89a\x01\x00\x01\x00\x80\x00\x00\x00\x00\x00"
+        b"\xff\xff\xff!\xf9\x04\x01\x00\x00\x00\x00,\x00"
+        b"\x00\x00\x00\x01\x00\x01\x00\x00\x02\x02D\x01\x00;"
+    )
+    return HTMLResponse(content=transparent_gif, media_type="image/gif")
