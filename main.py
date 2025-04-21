@@ -6,7 +6,7 @@ from database.models import EmailLeads
 import base64
 
 # Замените на вашу строку подключения к БД на Render
-DATABASE_URL = "postgresql+psycopg2://user:password@hostname:port/dbname"
+DATABASE_URL = "postgresql://mybot:qe9UR3fd6ZrSDkXaqlb9Bkv9HC1J4HUt@dpg-d00gv9k9c44c73flrq2g-a.virginia-postgres.render.com/megabot_jqre"
 
 engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
